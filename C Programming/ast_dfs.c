@@ -3,6 +3,11 @@
 #include "json_c.c"
 #define PRINT_INDENT 4
 
+
+int step = 0;
+int func_count = 0;
+int if_cond_count = 0;
+int all_cond_count = 0;
 char* read_file_as_string(const char* file_path)
 {
     // 파일 크기만 큼 파일 읽기
@@ -27,7 +32,6 @@ char* read_file_as_string(const char* file_path)
     return buffer;
 }
 
-int step = 0;
 
 void print_indent()
 //indent 출력 함수
@@ -200,6 +204,7 @@ char* extract_expr(json_value node)
     return strdup(nodetype);
 }
 
+
 void ast_dfs(json_value node)
 {
     if (node.type == JSON_ARRAY)
@@ -221,6 +226,8 @@ void ast_dfs(json_value node)
     if (strcmp(nodetype, "FuncDef") == 0)
     {
         // 함수 선언
+        // 함수 개수 세기
+        func_count++;
         char* name = json_get_string(json_get(node, "decl", "name"));
         // 가변 인자라 확인해보니깐, 타고타고 들어갈 수 있음.
         char* return_type = get_type_string(json_get(node, "decl", "type", "type"));
@@ -247,6 +254,8 @@ void ast_dfs(json_value node)
         free(return_type);
         step++;
         ast_dfs(json_get(node, "body")); // body는 다시 재귀로 뜯기
+        printf("%s 함수의 if조건 개수: %d\n\n", name, if_cond_count);
+        if_cond_count=0;
         step--;
     }
     else if (strcmp(nodetype, "Decl") == 0)
@@ -269,6 +278,10 @@ void ast_dfs(json_value node)
         char* cond = extract_expr(json_get(node, "cond"));
         print_indent();
         printf("If condition: %s\n", cond);
+        // If 조건문 condition 개수 ++
+        if_cond_count++;
+        all_cond_count++;
+
         free(cond);
         step++;
         ast_dfs(json_get(node, "iftrue"));
@@ -308,4 +321,7 @@ int main(int argc, char* argv[])
     ast_dfs(ext);
 
     free(file_contents);
+
+    printf("\n전체 함수의 개수: %d\n", func_count);
+    printf("전체 조건문의 개수: %d\n", all_cond_count);
 }
