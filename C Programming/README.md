@@ -1,3 +1,4 @@
+JSON 특성상 재귀적으로 탐색하게 하는 것이 좋을 것 같아 DFS로 설계해보았습니다.
 # 실행 결과
 ```
 /WHS/Cprogramming/ast_parser ast.json
